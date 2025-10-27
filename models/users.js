@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -29,5 +31,14 @@ const userSchema = new mongoose.Schema({
     }
 );
 
-module.exports = mongoose.model('User', userSchema);
+// Password hashing
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    // Salt
+    const salt = await bcrypt.genSalt(Number(process.env.BCRYPT_SALT_ROUNDS));
+    // Hash
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+});
 
+module.exports = mongoose.model('User', userSchema);
