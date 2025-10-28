@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/users');
 const jwt = require('jsonwebtoken');
+const authenticateToken = require('../middleware/auth');
 
 // Creating the POST Register route for a user to register a new account
 router.post('/register', async (req, res) => {
@@ -61,6 +62,15 @@ router.post('/login', async (req, res) => {
         console.error(err);
         res.status(500).json({ error: 'Server error' });
     }
+});
+
+// Creating the GET profile route for users to access their profile
+router.get('/profile', authenticateToken, async (req, res) => {
+    // authenticate token here executes the function that confirms validity of JWT
+    // It also sets req.user.id and req.user.role
+    const user = await User.findById(req.user.id).select('-password');
+    // This '-password' tells MongoDB to include everything EXCEPT password
+    res.json(user);
 })
 
 
